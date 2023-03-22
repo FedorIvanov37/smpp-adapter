@@ -1,0 +1,7 @@
+{
+    "sms_gate_smpp_system_id": "sms_gateway",
+    "http_adapter_smpp_system_id": "http_adapter",
+    "debug_level": "DEBUG",
+    "http_adapter_log_path": "common/log/http_adapter.log",
+    "smpp_gateway_log_path": "common/log/smpp_gateway.log"
+}
