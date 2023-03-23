@@ -8,7 +8,7 @@ from common.app_data.constants import FilePath
 from common.app_data.data_models import Config, IncomingSmsMessage
 from common.app_data.enumerations import SmppSystemId
 from pydantic import ValidationError
-from common.app_data.constants import SmsApiStatus
+from common.app_data.constants import SmsApi
 
 
 config: Config = Config.parse_file(FilePath.CONFIG)
@@ -22,7 +22,7 @@ def get_smsapi_callback(
         sms_from: str = Form(),
         sms_text: str = Form(),
         sms_date: str = Form(),
-        username: str = Form()) -> int | str:
+        username: str = Form()):
 
     try:
         incoming_sms = IncomingSmsMessage(
@@ -35,6 +35,9 @@ def get_smsapi_callback(
 
     except ValidationError as validation_error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=loads(validation_error.json()))
+
+    if incoming_sms.sms_from == SmsApi.TEST_SMS_SENDER and incoming_sms.sms_text == SmsApi.TEST_SMS_TEXT:
+        return SmsApi.STATUS_OK
 
     parts, encoding_flag, msg_type_flag = gsm.make_parts(incoming_sms.sms_text)
 
@@ -50,7 +53,7 @@ def get_smsapi_callback(
             registered_delivery=True,
         )
 
-    return SmsApiStatus.OK
+    return SmsApi.STATUS_OK
 
 
 def run_http_adapter():
