@@ -3,3 +3,4 @@ smpplib
 pydantic
 fastapi
 uvicorn
+python-multipart

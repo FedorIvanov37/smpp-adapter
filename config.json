@@ -1,4 +1,5 @@
 {
+    "smpp_gateway_ip": "172.17.0.1",
     "sms_gate_smpp_system_id": "sms_gateway",
     "http_adapter_smpp_system_id": "http_adapter",
     "debug_level": "DEBUG",
