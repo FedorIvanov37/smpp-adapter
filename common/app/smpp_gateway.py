@@ -26,13 +26,13 @@ class SmppGateway(Application):
     async def handle_unbound_client(self, client: SmppClient):
         debug(f"Client {client.system_id} disconnected")
 
-    async def handle_sms_received(self, client: SmppClient, source_number: str, destination_number: str, text: str):
+    async def handle_sms_received(self, client: SmppClient, source_number: str, dest_number: str, text: str):
         self.logger.debug(f'Received {text} from {source_number}')
 
         if self.sv_sms_gate_client is None:
             return
 
-        await self.sv_sms_gate_client.send_sms(dest=destination_number, source=source_number, text=text)
+        await self.sv_sms_gate_client.send_sms(dest=dest_number, source=source_number, text=text)
 
 
 def run_smpp_gateway():
