@@ -1,22 +1,43 @@
+from json import loads
 from smpplib import gsm, consts
 from smpplib.client import Client
 from logging import debug
-from fastapi import FastAPI
-from http import HTTPStatus
-from uvicorn import run as run_sms_adapter_api
+from fastapi import FastAPI, Form, status, HTTPException
+from uvicorn import run as run_api
 from common.app_data.constants import FilePath
 from common.app_data.data_models import Config, IncomingSmsMessage
 from common.app_data.enumerations import SmppSystemId
+from pydantic import ValidationError
+from common.app_data.constants import SmsApiStatus
 
 
 config: Config = Config.parse_file(FilePath.CONFIG)
 fast_api: FastAPI = FastAPI(title="HttpAdapter")
-smpp_client: Client = Client(config.smpp_gateway_address, config.smpp_gateway_port)
+smpp_client: Client = Client(config.smpp_gateway_ip, config.smpp_gateway_port)
 
 
 @fast_api.post("/callback")
-def get_smsapi_callback(incoming_sms: IncomingSmsMessage) -> int:
+def get_smsapi_callback(
+        sms_to: str = Form(),
+        sms_from: str = Form(),
+        sms_text: str = Form(),
+        sms_date: str = Form(),
+        username: str = Form()) -> int | str:
+
+    try:
+        incoming_sms = IncomingSmsMessage(
+            sms_from=sms_from,
+            sms_text=sms_text,
+            sms_to=sms_to,
+            sms_date=sms_date,
+            username=username
+        )
+
+    except ValidationError as validation_error:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=loads(validation_error.json()))
+
     parts, encoding_flag, msg_type_flag = gsm.make_parts(incoming_sms.sms_text)
+
     for part in parts:
         smpp_client.send_message(
             source_addr_ton=consts.SMPP_TON_INTL,
@@ -29,12 +50,12 @@ def get_smsapi_callback(incoming_sms: IncomingSmsMessage) -> int:
             registered_delivery=True,
         )
 
-    return HTTPStatus.OK
+    return SmsApiStatus.OK
 
 
 def run_http_adapter():
     smpp_client.set_message_sent_handler(lambda pdu: debug(f"sent {pdu.sequence} {pdu.message_id}"))
     smpp_client.set_message_received_handler(lambda pdu: debug(f"delivered {pdu.receipted_message_id}"))
     smpp_client.connect()
-    smpp_client.bind_transmitter(system_id=SmppSystemId.HTTP_ADAPTER)
-    run_sms_adapter_api(fast_api, host=config.http_adapter_address, port=config.http_adapter_port)
+    smpp_client.bind_transceiver(system_id=SmppSystemId.HTTP_ADAPTER)
+    run_api(fast_api, host=config.http_adapter_address, port=config.http_adapter_port)

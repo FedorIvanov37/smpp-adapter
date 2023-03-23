@@ -15,7 +15,7 @@ class SmppGateway(Application):
     async def handle_bound_client(self, client: SmppClient) -> SmppClient:
         self.logger.debug(f"Smpp client {client.system_id} connected")
 
-        if client.system_id not in SmppSystemId:
+        if client.system_id not in (item.value for item in SmppSystemId):
             raise NameError(f"Unknown smpp client system id: {client.system_id}")
 
         if client.system_id == SmppSystemId.SV_SMS_GATE:
