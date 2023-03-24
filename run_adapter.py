@@ -8,4 +8,4 @@ if __name__ == "__main__":
     for application in run_smpp_gateway, run_http_adapter:
         application_process = Process(target=application)
         application_process.start()
-        sleep(2)
+        sleep(2)  # TODO
