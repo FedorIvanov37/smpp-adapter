@@ -1,7 +1,6 @@
 from logging import getLogger, debug
 from asyncio import get_event_loop
 from smppy.server import SmppClient, Application
-from common.app_data.enumerations import SmppSystemId
 from common.app_data.data_models import Config
 from common.app_data.constants import FilePath
 
@@ -11,14 +10,15 @@ class SmppGateway(Application):
 
     def __init__(self, name: str, logger):
         super(SmppGateway, self).__init__(name=name, logger=logger)
+        self.config = Config.parse_file(FilePath.CONFIG)
 
     async def handle_bound_client(self, client: SmppClient) -> SmppClient:
         self.logger.debug(f"Smpp client {client.system_id} connected")
 
-        if client.system_id not in (item.value for item in SmppSystemId):
+        if client.system_id not in (self.config.smpp_sid_http_adapter, self.config.smpp_sid_sms_gate):
             raise NameError(f"Unknown smpp client system id: {client.system_id}")
 
-        if client.system_id == SmppSystemId.SV_SMS_GATE:
+        if client.system_id == self.config.smpp_sid_sms_gate:
             self.sv_sms_gate_client = client
 
         return client
@@ -39,4 +39,4 @@ def run_smpp_gateway():
     config: Config = Config.parse_file(FilePath.CONFIG)
     event_loop = get_event_loop()
     smpp_gateway: SmppGateway = SmppGateway(name='smpp_gateway', logger=getLogger('smpp_gateway'))
-    smpp_gateway.run(loop=event_loop, host=config.smpp_gateway_address, port=config.smpp_gateway_port)
+    smpp_gateway.run(loop=event_loop, port=config.smpp_port)

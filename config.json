@@ -1,8 +1,10 @@
 {
-    "smpp_gateway_ip": "172.17.0.1",
-    "sms_gate_smpp_system_id": "sms_gateway",
-    "http_adapter_smpp_system_id": "http_adapter",
-    "debug_level": "DEBUG",
-    "http_adapter_log_path": "common/log/http_adapter.log",
-    "smpp_gateway_log_path": "common/log/smpp_gateway.log"
+    "smpp_address": "172.17.0.1",
+    "smpp_port": 2775,
+    "http_port": 8000,
+    "smpp_sid_sms_gate": "sms_gateway",
+    "smpp_sid_http_adapter": "http_adapter",
+    "http_log_path": "common/log/http_adapter.log",
+    "smpp_log_path": "common/log/smpp_gateway.log",
+    "debug_level": "DEBUG"
 }

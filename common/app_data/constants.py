@@ -10,5 +10,5 @@ class FilePath:
 @dataclass
 class SmsApi:
     STATUS_OK: Response = Response("OK")
-    TEST_SMS_SENDER: str = "48900900900"
-    TEST_SMS_TEXT: str = "Test message"
+    PING_SMS_SENDER: str = "48900900900"
+    PING_SMS_TEXT: str = "Test message"
