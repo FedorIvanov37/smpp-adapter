@@ -2,13 +2,13 @@ from json import loads
 from smpplib import gsm, consts
 from smpplib.client import Client
 from logging import debug
-from fastapi import FastAPI, Form, status, HTTPException
 from uvicorn import run as run_api
-from common.app_data.constants import FilePath
-from common.app_data.data_models import Config, IncomingSmsMessage
+from fastapi import FastAPI, Form, status, HTTPException
+from fastapi.responses import Response
 from pydantic import ValidationError
 from common.app_data.constants import SmsApi
-from fastapi.responses import Response
+from common.app_data.constants import FilePath
+from common.app_data.data_models import Config, IncomingSmsMessage
 
 
 config: Config = Config.parse_file(FilePath.CONFIG)
@@ -25,7 +25,7 @@ def run_http_adapter():
 
 
 def process_incoming_message(sms: IncomingSmsMessage) -> Response:
-    if sms.sms_from == SmsApi.PING_SMS_SENDER and SmsApi.PING_SMS_TEXT == sms.sms_text:
+    if sms.sms_from == SmsApi.PING_SMS_SENDER and sms.sms_text == SmsApi.PING_SMS_TEXT:
         return SmsApi.STATUS_OK
 
     parts, encoding_flag, msg_type_flag = gsm.make_parts(sms.sms_text)
@@ -54,7 +54,7 @@ def process_smsapi_callback(
         username: str = Form()):
 
     try:
-        incoming_sms = IncomingSmsMessage(
+        sms: IncomingSmsMessage = IncomingSmsMessage(
             sms_from=sms_from,
             sms_to=sms_to,
             sms_text=sms_text,
@@ -65,4 +65,7 @@ def process_smsapi_callback(
     except ValidationError as validation_error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=loads(validation_error.json()))
 
-    return process_incoming_message(incoming_sms)
+    except:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+    return process_incoming_message(sms)
