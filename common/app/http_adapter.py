@@ -50,8 +50,9 @@ def process_smsapi_callback(
         sms_to: str = Form(),
         sms_from: str = Form(),
         sms_text: str = Form(),
-        sms_date: float = Form(),
-        username: str = Form()):
+        sms_date: str = Form(),
+        username: str = Form(),
+):
 
     try:
         sms: IncomingSmsMessage = IncomingSmsMessage(
@@ -62,10 +63,12 @@ def process_smsapi_callback(
             username=username
         )
 
+        response: Response = process_incoming_message(sms)
+
     except ValidationError as validation_error:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=loads(validation_error.json()))
 
-    except:
+    except Exception:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
-    return process_incoming_message(sms)
+    return response
